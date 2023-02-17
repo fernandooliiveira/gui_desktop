@@ -1,15 +1,14 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:gui_desktop/mdi/resizable_window.dart';
-import 'package:uuid/uuid.dart';
+import 'package:gui_desktop/mdi/default_window.dart';
 
 class MdiController {
   final VoidCallback _onUpdate;
-  final List<ResizableWindow> _windows = List.empty(growable: true);
+  final List<DefaultWindow> _windows = List.empty(growable: true);
   MdiController({required void Function() onUpdate}) : _onUpdate = onUpdate;
 
-  List<ResizableWindow> get windows => _windows;
+  List<DefaultWindow> get windows => _windows;
 
   void addWindow() {
     _createNewWindowedApp();
@@ -17,11 +16,9 @@ class MdiController {
 
   void _createNewWindowedApp() {
     var rng = Random();
-    var uuid = const Uuid();
-    ResizableWindow resizableWindow = ResizableWindow(
+    DefaultWindow resizableWindow = DefaultWindow(
       x: rng.nextDouble() * 500,
       y: rng.nextDouble() * 500,
-      key: Key(uuid.v1()),
     );
 
     resizableWindow.onWindowDragged = (dx, dy) {
@@ -29,6 +26,19 @@ class MdiController {
       resizableWindow.y += dy;
       _windows.remove(resizableWindow);
       _windows.add(resizableWindow);
+      _onUpdate();
+    };
+
+    resizableWindow.onClosed = () {
+      _windows.remove(resizableWindow);
+      _onUpdate();
+    };
+
+    resizableWindow.onMaximized = (width, height) {
+      resizableWindow.x = 0;
+      resizableWindow.y = 0;
+      resizableWindow.currentWidth = width;
+      resizableWindow.currentHeight = height;
       _onUpdate();
     };
 

@@ -19,6 +19,8 @@ class _MdiManagerState extends State<MdiManager> {
   Widget build(BuildContext context) {
     return Stack(
         children: widget.mdiController.windows.map((e){
+          e.maxHeight = MediaQuery.of(context).size.height;
+          e.maxWidth = MediaQuery.of(context).size.width;
           return Positioned(
             left: e.x,
             top: e.y,

@@ -1,8 +1,12 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 // ignore: must_be_immutable
-class ResizableWindow extends StatefulWidget {
+class DefaultWindow extends StatefulWidget {
+  double? maxWidth;
+  double? maxHeight;
+
   double x;
   double y;
   double currentWidth;
@@ -10,8 +14,10 @@ class ResizableWindow extends StatefulWidget {
   final double defaultSize;
 
   late Function(double, double) onWindowDragged;
+  late Function() onClosed;
+  late Function(double, double) onMaximized;
 
-  ResizableWindow({
+  DefaultWindow({
     Key? key,
     required this.x,
     required this.y,
@@ -21,15 +27,16 @@ class ResizableWindow extends StatefulWidget {
   }) : super(key: UniqueKey());
 
   @override
-  State<ResizableWindow> createState() => _ResizableWindowState();
+  State<DefaultWindow> createState() => _DefaultWindowState();
 }
 
-class _ResizableWindowState extends State<ResizableWindow> {
+class _DefaultWindowState extends State<DefaultWindow> {
+  late Size windowSize;
   late SystemMouseCursor _cursor;
+
   _setDragStart() => setState(() => _cursor = SystemMouseCursors.move);
-  _setDragEnd() => setState(() => _cursor = SystemMouseCursors.click);
-  _setDragHorizontalStart() => setState(() => _cursor = SystemMouseCursors.resizeLeftRight);
-  _setDragHorizontalEnd() => setState(() => _cursor = SystemMouseCursors.move);
+
+  _setDragEnd() => setState(() => _cursor = SystemMouseCursors.basic);
 
   _header() {
     return MouseRegion(
@@ -47,6 +54,76 @@ class _ResizableWindowState extends State<ResizableWindow> {
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(10),
               topRight: Radius.circular(10),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 100,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      InkWell(
+                        onTap: widget.onClosed,
+                        child: Container(
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(30),
+                            color: Colors.red,
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () => setState(() => widget.onMaximized(
+                            widget.maxWidth!, widget.maxHeight!)),
+                        child: Container(
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(30),
+                            color: Colors.yellow,
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.square_outlined,
+                              color: Colors.white,
+                              size: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                      InkWell(
+                        onTap: widget.onClosed,
+                        child: Container(
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(30),
+                            color: Colors.green,
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              CupertinoIcons.minus,
+                              color: Colors.white,
+                              size: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              ],
             ),
           ),
         ),
@@ -99,6 +176,7 @@ class _ResizableWindowState extends State<ResizableWindow> {
       }
     });
   }
+
   void _onVerticalDragTop(DragUpdateDetails details) {
     setState(() {
       widget.currentHeight -= details.delta.dy;
@@ -132,7 +210,7 @@ class _ResizableWindowState extends State<ResizableWindow> {
 
   @override
   void initState() {
-    _cursor = SystemMouseCursors.click;
+    _cursor = SystemMouseCursors.basic;
     super.initState();
   }
 
@@ -160,19 +238,19 @@ class _ResizableWindowState extends State<ResizableWindow> {
           ),
           // RIGHT RESIZE
           Positioned(
-              right: 0,
-              top: 0,
-              bottom: 0,
-              child: GestureDetector(
-                onHorizontalDragUpdate: _onHorizontalDragRight,
-                child: const MouseRegion(
-                  cursor: SystemMouseCursors.resizeLeftRight,
-                  opaque: true,
-                  child: SizedBox(
-                    width: 4,
-                  ),
+            right: 0,
+            top: 0,
+            bottom: 0,
+            child: GestureDetector(
+              onHorizontalDragUpdate: _onHorizontalDragRight,
+              child: const MouseRegion(
+                cursor: SystemMouseCursors.resizeLeftRight,
+                opaque: true,
+                child: SizedBox(
+                  width: 4,
                 ),
               ),
+            ),
           ),
           // LEFT RESIZE
           // TODO: CORRIGIR BUG DE POSIÇÃO
