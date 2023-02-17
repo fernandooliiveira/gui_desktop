@@ -1,11 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:gui_desktop/mdi/minimized_state.dart';
 
 // ignore: must_be_immutable
 class DefaultWindow extends StatefulWidget {
   double? maxWidth;
   double? maxHeight;
+  MinimizedState? minimizedState;
+  bool maximized = false;
+  bool minimized = false;
 
   double x;
   double y;
@@ -16,6 +20,9 @@ class DefaultWindow extends StatefulWidget {
   late Function(double, double) onWindowDragged;
   late Function() onClosed;
   late Function(double, double) onMaximized;
+  late Function(MinimizedState state) onResize;
+  late Function() onMinimize;
+  late Function() openTab;
 
   DefaultWindow({
     Key? key,
@@ -31,6 +38,7 @@ class DefaultWindow extends StatefulWidget {
 }
 
 class _DefaultWindowState extends State<DefaultWindow> {
+
   late Size windowSize;
   late SystemMouseCursor _cursor;
 
@@ -84,8 +92,8 @@ class _DefaultWindowState extends State<DefaultWindow> {
                         ),
                       ),
                       InkWell(
-                        onTap: () => setState(() => widget.onMaximized(
-                            widget.maxWidth!, widget.maxHeight!)),
+                        onTap: !widget.maximized ? () => setState(() => widget.onMaximized(
+                            widget.maxWidth!, widget.maxHeight!)) : () => setState(() => widget.onResize(widget.minimizedState!)),
                         child: Container(
                           width: 22,
                           height: 22,
@@ -93,9 +101,9 @@ class _DefaultWindowState extends State<DefaultWindow> {
                             borderRadius: BorderRadius.circular(30),
                             color: Colors.yellow,
                           ),
-                          child: const Center(
+                          child: Center(
                             child: Icon(
-                              Icons.square_outlined,
+                              !widget.maximized ? Icons.square_outlined : Icons.copy,
                               color: Colors.white,
                               size: 12,
                             ),
@@ -103,7 +111,7 @@ class _DefaultWindowState extends State<DefaultWindow> {
                         ),
                       ),
                       InkWell(
-                        onTap: widget.onClosed,
+                        onTap: () => setState(() => widget.onMinimize()),
                         child: Container(
                           width: 22,
                           height: 22,
